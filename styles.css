@@ -1,94 +1,98 @@
-/* Простой стиль: фон, центровка ника, кнопка воспроизведения */
-html,body{
-  height:100%;
-  margin:0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-}
-body{
-  background-image: url('assets/bg.jpg'); /* Положите сюда вашу картинку пейзажа (assets/bg.jpg) */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+:root{--bg:#0f1724;--card:#0b1220;--accent:#8b5cf6;--muted:#9aa4b2;--glass: rgba(255,255,255,0.03)}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:#e6eef8;line-height:1.5;
+  /* Minimalist, unobtrusive background: solid base + very soft gradients for depth */
+  background-color: #071726;
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.00) 60%),
+    radial-gradient(circle at 10% 10%, rgba(139,92,246,0.02) 0%, transparent 25%),
+    radial-gradient(circle at 90% 90%, rgba(6,182,212,0.015) 0%, transparent 30%);
   background-attachment: fixed;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color: #fff;
+}
+.container{max-width:1000px;margin:0 auto;padding:1.5rem}
+.site-header{background:transparent;position:sticky;top:0;backdrop-filter: blur(6px);z-index:20}
+.site-header .container{display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:700;font-size:1.25rem;letter-spacing:1px}
+.nav{display:flex;gap:1rem}
+.nav a{color:var(--muted);text-decoration:none;padding:0.25rem 0.5rem;border-radius:6px}
+.nav a:hover{color:var(--accent)}
+.menu-toggle{display:none;background:none;border:0;color:var(--muted);font-size:1.4rem}
+.hero{padding:4rem 0;text-align:center}
+.hero h1{font-size:3rem;margin:0 0 0.5rem;color:var(--accent)}
+.lead{color:var(--muted);max-width:700px;margin:0 auto 1rem}
+.btn{display:inline-block;padding:0.6rem 1rem;background:linear-gradient(90deg,var(--accent),#06b6d4);color:white;border-radius:8px;text-decoration:none}
+.features{padding:2rem 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+.card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:1rem;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+.gallery .thumb{background:var(--card);height:120px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.contact{padding:2rem 0}
+.contact-form{display:grid;gap:0.5rem;max-width:540px}
+.contact-form label{display:flex;flex-direction:column;font-size:0.9rem;color:var(--muted)}
+.contact-form input,.contact-form textarea{margin-top:0.3rem;padding:0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+.site-footer{padding:1rem 0;text-align:center;color:var(--muted);border-top:1px solid rgba(255,255,255,0.02)}
+@media (max-width:720px){
+  .nav{display:none;position:absolute;right:1rem;top:60px;background:var(--glass);padding:0.5rem;border-radius:8px;flex-direction:column}
+  .menu-toggle{display:block}
+  .hero h1{font-size:2.25rem}
 }
 
-/* Фоновое видео — растянуть на весь экран позади контента */
-.bg-video-wrapper{
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-  z-index: 0;
-}
-.bg-video-iframe{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120vmax; /* делаем большим, чтобы покрыть экран при любых соотношениях */
-  height: 120vmax;
-  transform: translate(-50%, -50%);
-  pointer-events: none; /* чтобы видео не перехватывало клики */
-}
-.center{
-  text-align:center;
-  z-index:1;
-}
-.center h1{
-  margin:0;
-}
-.center .title-line{
-  font-size: clamp(36px, 6vw, 84px);
-  font-weight: 700;
-  color: #000;
-  letter-spacing: 2px;
-  text-shadow: 0 4px 20px rgba(255, 255, 255, 0.25);
-}
-.center .subtitle-line{
-  font-size: clamp(20px, 3vw, 40px);
-  font-weight: 600;
-  color: #000;
-  margin-top: 6px;
-  opacity: 0.95;
-}
-.overlay{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: rgba(255, 255, 255, 0.25);
-  z-index:2;
-}
-.play-btn{
-  background: linear-gradient(180deg, #ff7a18, #ff4e00);
-  border: none;
-  color: #fff;
-  padding: 14px 22px;
-  font-size: 18px;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-}
-.play-btn:active{ transform: translateY(1px); }
-@media (max-width:480px){
-  .play-btn{ padding:10px 16px; font-size:16px }
-}
+/* Decorative overlay: waves and blurred floating circles */
+#decor{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:visible}
+.waves{position:absolute;left:-10%;right:-10%;top:0;height:100vh;width:120%;opacity:1;z-index:1}
+.wave{filter:blur(6px);mix-blend-mode:screen;opacity:0.95;vector-effect:non-scaling-stroke}
+.band .wave.base{opacity:0.55;stroke-width:3px}
+.band .wave.shimmer{opacity:1;stroke-width:4px}
+.band-top .shimmer{animation: dash 3s linear infinite, waveMoveTop 10s linear infinite}
+.band-mid .shimmer{animation: dash 3.6s linear infinite reverse, waveMoveMid 12s linear infinite}
+.band-low .shimmer{animation: dash 4.2s linear infinite, waveMoveLow 14s linear infinite}
+.band-bottom .shimmer{animation: dash 4.8s linear infinite reverse, waveMoveBottom 16s linear infinite}
 
-/* Кнопка управления звуком */
-.audio-toggle{
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 3;
-  background: rgba(255,255,255,0.85);
-  border: none;
-  border-radius: 10px;
-  padding: 8px 10px;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+.circles{position:absolute;inset:0;z-index:2}
+.circle{position:absolute;border-radius:50%;filter:blur(64px) saturate(120%);opacity:0.8;mix-blend-mode:screen;transform:translate3d(0,0,0);z-index:3}
+.c1{width:520px;height:520px;left:4%;top:6%;background:radial-gradient(circle at 30% 30%, rgba(139,92,246,0.38), rgba(139,92,246,0.04));animation: float1 12s ease-in-out infinite, hue 8s linear infinite}
+.c2{width:480px;height:480px;right:2%;top:18%;background:radial-gradient(circle at 30% 30%, rgba(6,182,212,0.36), rgba(6,182,212,0.03));animation: float2 14s ease-in-out infinite, hue 10s linear infinite}
+.c3{width:420px;height:420px;left:48%;top:58%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.16), rgba(255,255,255,0.02));animation: float3 16s ease-in-out infinite}
+/* additional circles */
+.c4{width:360px;height:360px;left:20%;top:40%;background:radial-gradient(circle at 30% 30%, rgba(139,92,246,0.28), rgba(139,92,246,0.02));animation: float4 18s ease-in-out infinite, hue 14s linear infinite}
+.c5{width:300px;height:300px;right:18%;top:48%;background:radial-gradient(circle at 30% 30%, rgba(6,182,212,0.28), rgba(6,182,212,0.02));animation: float5 16s ease-in-out infinite}
+.c6{width:260px;height:260px;left:10%;top:70%;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.12), rgba(255,255,255,0.01));animation: float6 20s ease-in-out infinite}
+.c7{width:220px;height:220px;right:30%;top:8%;background:radial-gradient(circle at 30% 30%, rgba(139,92,246,0.22), rgba(139,92,246,0.01));animation: float7 22s ease-in-out infinite}
+.c8{width:180px;height:180px;left:70%;top:18%;background:radial-gradient(circle at 30% 30%, rgba(6,182,212,0.22), rgba(6,182,212,0.01));animation: float8 20s ease-in-out infinite}
+
+@keyframes waveMove{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+
+@keyframes waveMoveTop{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
+@keyframes waveMoveMid{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
+@keyframes waveMoveLow{from{transform:translateX(-8%)}to{transform:translateX(8%)}}
+@keyframes waveMoveBottom{from{transform:translateX(-10%)}to{transform:translateX(10%)}}
+
+/* shimmer movement for dashed strokes */
+.shimmer{stroke-dashoffset:0;opacity:0.95;mix-blend-mode:screen;animation: dash 3.2s linear infinite, waveMove 10s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-480}}
+
+@keyframes float1{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-18px) translateX(12px)}100%{transform:translateY(0) translateX(0)}}
+@keyframes float2{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-24px) translateX(-8px)}100%{transform:translateY(0) translateX(0)}}
+@keyframes float3{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-12px) translateX(6px)}100%{transform:translateY(0) translateX(0)}}
+
+@keyframes float4{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-20px) translateX(10px)}100%{transform:translateY(0) translateX(0)}}
+@keyframes float5{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-14px) translateX(-12px)}100%{transform:translateY(0) translateX(0)}}
+@keyframes float6{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-10px) translateX(8px)}100%{transform:translateY(0) translateX(0)}}
+@keyframes float7{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-22px) translateX(6px)}100%{transform:translateY(0) translateX(0)}}
+@keyframes float8{0%{transform:translateY(0) translateX(0)}50%{transform:translateY(-16px) translateX(-6px)}100%{transform:translateY(0) translateX(0)}}
+
+@keyframes hue{0%{filter:hue-rotate(0deg)}50%{filter:hue-rotate(25deg)}100%{filter:hue-rotate(0deg)}}
+
+/* Ensure main content sits above the decor */
+header, main, footer{position:relative;z-index:12}
+
+/* Large-screen adjustments (2560px wide and up) */
+@media (min-width:2000px){
+  .container{max-width:1600px}
+  .waves{left:-20%;right:-20%;width:140%}
+  .band .wave.base{stroke-width:3.6}
+  .band .wave.shimmer{stroke-width:5.2}
+  .c1{width:760px;height:760px;left:3%;top:4%}
+  .c2{width:700px;height:700px;right:1%;top:14%}
+  .c3{width:600px;height:600px;left:44%;top:50%}
 }
-.audio-toggle:active{ transform: translateY(1px); }
