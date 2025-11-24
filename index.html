@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>hraine_IVANTUS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Фоновое видео (YouTube без звука). Заменено на API-плеер, чтобы можно было ловить ошибки встраивания -->
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <div id="yt-bg-player" class="bg-video-iframe" aria-hidden="true"></div>
+    <div id="videoError" class="video-error" style="display:none;" role="alert">Ошибка настройки видеопроигрывателя. Встраивание видео недоступно — проверьте блокировщики рекламы, настройки браузера или сетевые ограничения.</div>
+  </div>
+
+  <!-- Оверлей для ручного запуска звука удалён по запросу -->
+
+  <div class="center">
+    <h1>
+      <div class="title-line">ИВАН ШЕРЕМЕТ</div>
+      <div class="subtitle-line">ДЕД ИНСАЙД</div>
+    </h1>
+  </div>
+
+  <!-- Локальный аудиофайл (положите сюда ваш MP3: assets/unravel.mp3) -->
+  <audio id="bgAudio" src="assets/unravel.mp3" preload="auto"></audio>
+
+  <!-- Небольшая кнопка управления звуком (в правом нижнем углу) -->
+  <button id="audioToggle" class="audio-toggle" aria-pressed="false" title="Включить/выключить звук">🔈</button>
+
+  <!-- YouTube fallback: укажите ID видео в переменной ytVideoId внизу (опция) -->
+  <div id="ytWrapper" style="display:none">
+    <iframe id="ytPlayer" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  </div>
+
+  <script>
+    const audio = document.getElementById('bgAudio');
+    const ytVideoId = ''; // Вставьте YouTube video ID если хотите встраивать через YouTube
+
+    function tryAutoplay() {
+      if (audio && audio.src) {
+        // Устанавливаем начальные параметры: muted=true чтобы браузер позволил autoplay,
+        // и volume=0.5 как целевую громкость после размутирования
+        try{ audio.muted = true; audio.volume = 0.5; }catch(e){}
+        // Попытаться autoplay в muted состоянии
+        audio.play().then(()=>{
+          // autoplay succeeded but всё ещё muted — ждём взаимодействия чтобы размутить
+          updateAudioButtonState();
+        }).catch(()=>{
+          // автоплей не удался — ждём взаимодействия
+          updateAudioButtonState();
+        });
+      } else if (ytVideoId) {
+        const iframe = document.getElementById('ytPlayer');
+        iframe.src = `https://www.youtube.com/embed/afV8i-mN9yU?autoplay=1&controls=0&rel=0`;
+        document.getElementById('ytWrapper').style.display = 'block';
+      }
+    }
+
+    window.addEventListener('load', tryAutoplay);
+
+    // Если автоплей заблокирован, попробуем возобновить при первом взаимодействии пользователя
+    // плавное увеличение громкости до target в ms
+    function fadeInAudio(targetVolume = 0.5, duration = 800){
+      if (!audio) return;
+      try{
+        audio.muted = false;
+      }catch(e){}
+      const start = audio.volume || 0;
+      const delta = targetVolume - start;
+      const steps = 20;
+      const stepTime = duration / steps;
+      let current = 0;
+      const iv = setInterval(()=>{
+        current++;
+        const v = start + (delta * (current/steps));
+        try{ audio.volume = Math.max(0, Math.min(1, v)); }catch(e){}
+        if (current >= steps){ clearInterval(iv); }
+      }, stepTime);
+    }
+
+    function attemptPlayOnInteraction(){
+      if (!audio) return;
+      // если аудио ещё не играет, попытаться стартовать
+      audio.play().catch(()=>{});
+      // плавно размутить и поднять громкость
+      fadeInAudio(0.5, 800);
+      // отписываемся после первой попытки
+      window.removeEventListener('click', attemptPlayOnInteraction);
+      window.removeEventListener('touchstart', attemptPlayOnInteraction);
+      window.removeEventListener('keydown', attemptPlayOnInteraction);
+    }
+    window.addEventListener('click', attemptPlayOnInteraction);
+    window.addEventListener('touchstart', attemptPlayOnInteraction);
+    window.addEventListener('keydown', attemptPlayOnInteraction);
+
+    // Кнопка управления звуком
+    const audioToggle = document.getElementById('audioToggle');
+    function updateAudioButtonState(){
+      if (!audioToggle) return;
+      const isMuted = audio ? (audio.muted || audio.volume === 0) : true;
+      audioToggle.textContent = isMuted ? '🔈' : '🔊';
+      audioToggle.setAttribute('aria-pressed', String(!isMuted));
+    }
+    if (audioToggle){
+      audioToggle.addEventListener('click', (e)=>{
+        e.preventDefault();
+        if (!audio) return;
+        if (audio.muted || audio.volume === 0){
+          fadeInAudio(0.5, 600);
+        } else {
+          try{ audio.volume = 0; audio.muted = true; }catch(e){}
+        }
+        updateAudioButtonState();
+      });
+    }
+
+    // обновляем состояние кнопки при старте и при событиях
+    if (audio){
+      audio.addEventListener('play', updateAudioButtonState);
+      audio.addEventListener('pause', updateAudioButtonState);
+      audio.addEventListener('volumechange', updateAudioButtonState);
+    }
+  </script>
+
+  <!-- YouTube IFrame API + обработка ошибок фонового плеера -->
+  <script>
+    // таймаут ожидания загрузки плеера (ms)
+    const PLAYER_LOAD_TIMEOUT = 1000;
+    let playerReady = false;
+    let playerLoadTimer = null;
+
+    function showVideoError() {
+  const err = document.getElementById('videoError');
+  if (err) err.style.display = 'block';
+  // скрываем весь wrapper с фоновым плеером, чтобы показать локальный bg (assets/bg.jpg)
+  const wrapper = document.querySelector('.bg-video-wrapper');
+  if (wrapper) wrapper.style.display = 'none';
+    }
+
+    // загружаем API асинхронно
+    (function loadYouTubeApi(){
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      tag.async = true;
+      document.head.appendChild(tag);
+    })();
+
+    // вызывается YouTube API когда готов
+    function onYouTubeIframeAPIReady() {
+      // параметры плеера: без элементов управления, на автозапуск в muted режиме, loop через playlist
+      window.ytBgPlayer = new YT.Player('yt-bg-player', {
+        videoId: 'afV8i-mN9yU',
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          mute: 1,
+          loop: 1,
+          playlist: 'afV8i-mN9yU',
+          modestbranding: 1,
+          rel: 0
+        },
+        events: {
+          onReady: function(event){
+              playerReady = true;
+              if (playerLoadTimer) clearTimeout(playerLoadTimer);
+              // если ранее показывали ошибку — скрываем сообщение и оставляем видео
+              const err = document.getElementById('videoError');
+              if (err) err.style.display = 'none';
+              try{ event.target.mute(); event.target.playVideo(); }catch(e){}
+            },
+          onError: function(e){
+            // показать пользовательское сообщение при ошибке встраивания
+            showVideoError();
+            console.warn('YouTube player error', e);
+          }
+        }
+      });
+
+      // если плеер не стал готов за время таймаута — показываем ошибку
+      playerLoadTimer = setTimeout(()=>{
+        if (!playerReady) showVideoError();
+      }, PLAYER_LOAD_TIMEOUT);
+    }
+  </script>
+</body>
+</html>
